@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Call Me Maybe — the build plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#ECEEF2;
+    --panel:#FFFFFF;
+    --panel-2:#F5F7FA;
+    --ink:#121926;
+    --ink-soft:#3A4453;
+    --muted:#697487;
+    --hair:#D5DAE2;
+    --hair-strong:#BFC6D2;
+    --signal:#3B3FE4;
+    --signal-soft:#E5E6FC;
+    --live:#F5A524;
+    --live-soft:#FDEFD3;
+    --live-line:#F1D79A;
+    --ok:#1F9D6B;
+    --ok-soft:#DDF3EA;
+    --code-bg:#0E1526;
+    --code-ink:#D8DEEA;
+    --code-dim:#7C8AA5;
+    --code-str:#8FD3A6;
+    --code-key:#8FB4FF;
+    --code-num:#F5B368;
+    --r:14px;
+    --maxw:1080px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Inter",system-ui,sans-serif;line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      linear-gradient(var(--hair) 1px,transparent 1px),
+      linear-gradient(90deg,var(--hair) 1px,transparent 1px);
+    background-size:34px 34px;background-position:-1px -1px;
+  }
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.28em;
+    text-transform:uppercase;color:var(--signal);font-weight:500;margin:0 0 18px;
+    display:flex;align-items:center;gap:12px;
+  }
+  .eyebrow::before{content:"";width:26px;height:1px;background:var(--signal)}
+
+  /* ---------- hero ---------- */
+  header{padding:62px 0 26px}
+  h1{
+    font-family:"Space Grotesk",sans-serif;font-weight:700;line-height:1.02;
+    font-size:clamp(2.5rem,7vw,4.6rem);letter-spacing:-.02em;margin:0 0 24px;max-width:15ch;
+  }
+  h1 .dot{color:var(--signal)}
+  .thesis{
+    font-size:clamp(1.1rem,2.5vw,1.34rem);color:var(--ink-soft);max-width:62ch;margin:0;
+    border-left:3px solid var(--signal);padding-left:20px;
+  }
+  .thesis b{color:var(--ink);font-weight:600}
+
+  .path{
+    margin:44px 0 8px;padding:22px 20px;background:var(--panel);
+    border:1px solid var(--hair-strong);border-radius:var(--r);overflow-x:auto;
+  }
+  .path-label{
+    font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--muted);margin:0 0 16px;
+  }
+  .path-row{display:flex;align-items:center;min-width:max-content}
+  .node{display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center}
+  .dotn{width:13px;height:13px;border-radius:50%;background:var(--panel);border:2px solid var(--signal)}
+  .node.terminal .dotn{background:var(--signal)}
+  .node span{font-family:"IBM Plex Mono",monospace;font-size:.74rem;color:var(--ink-soft);white-space:nowrap}
+  .link{height:2px;width:clamp(24px,5vw,60px);background:var(--signal);opacity:.4;margin:0 4px 26px;flex:0 0 auto}
+
+  /* ---------- section head ---------- */
+  .shead{margin:76px 0 8px}
+  .shead h2{
+    font-family:"Space Grotesk",sans-serif;font-weight:700;
+    font-size:clamp(1.7rem,4vw,2.5rem);letter-spacing:-.02em;margin:0;
+  }
+  .shead p{color:var(--muted);max-width:60ch;margin:12px 0 0;font-size:.98rem}
+
+  /* ---------- two rules ---------- */
+  .rules{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0 8px}
+  @media(max-width:720px){.rules{grid-template-columns:1fr}}
+  .rule{
+    background:var(--ink);color:#E8ECF3;border-radius:var(--r);padding:26px 26px;position:relative;overflow:hidden;
+  }
+  .rule::after{
+    content:"";position:absolute;right:-30px;bottom:-30px;width:150px;height:150px;border-radius:50%;
+    background:radial-gradient(circle,rgba(59,63,228,.4),transparent 70%);
+  }
+  .rule .tag{
+    font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;
+    color:#8FB4FF;margin:0 0 12px;position:relative;
+  }
+  .rule h3{font-family:"Space Grotesk",sans-serif;font-size:1.2rem;font-weight:500;margin:0 0 10px;position:relative}
+  .rule p{color:#AEB7C7;font-size:.92rem;margin:0;position:relative}
+  .rule p b{color:#fff}
+  .rule code{font-family:"IBM Plex Mono",monospace;font-size:.86em;background:#1c2540;color:#8FB4FF;padding:1px 5px;border-radius:4px}
+
+  /* ---------- concept grid ---------- */
+  .concepts{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin:28px 0}
+  @media(max-width:760px){.concepts{grid-template-columns:1fr}}
+  .c{background:var(--panel);border:1px solid var(--hair-strong);border-radius:12px;padding:20px 22px}
+  .c .num{font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--signal);letter-spacing:.1em;margin:0 0 8px}
+  .c h4{font-family:"Space Grotesk",sans-serif;font-size:1.06rem;font-weight:500;margin:0 0 8px}
+  .c p{margin:0;font-size:.9rem;color:var(--ink-soft)}
+  .c p b{color:var(--ink)}
+  .c code{font-family:"IBM Plex Mono",monospace;font-size:.84em;background:var(--signal-soft);color:var(--signal);padding:1px 5px;border-radius:4px}
+
+  /* ---------- architecture ---------- */
+  .arch{background:var(--panel);border:1px solid var(--hair-strong);border-radius:var(--r);padding:8px 24px;margin:28px 0}
+  .mod{display:grid;grid-template-columns:210px 1fr;gap:18px;padding:16px 0;border-bottom:1px solid var(--hair)}
+  .mod:last-child{border-bottom:none}
+  @media(max-width:640px){.mod{grid-template-columns:1fr;gap:4px}}
+  .mod .name{font-family:"IBM Plex Mono",monospace;font-size:.82rem;color:var(--signal);font-weight:500;padding-top:1px}
+  .mod .desc{font-size:.92rem;color:var(--ink-soft)}
+
+  /* ---------- timeline ---------- */
+  .timeline{position:relative;margin:34px 0 20px}
+  .timeline::before{
+    content:"";position:absolute;left:23px;top:16px;bottom:40px;width:2px;
+    background:linear-gradient(180deg,var(--signal) 0%,var(--signal) 86%,var(--live) 86%,var(--live) 100%);opacity:.85;
+  }
+  @media(max-width:640px){.timeline::before{left:17px}}
+  .day{position:relative;padding:0 0 34px 66px}
+  @media(max-width:640px){.day{padding-left:52px}}
+  .badge{
+    position:absolute;left:0;top:0;width:48px;height:48px;border-radius:50%;background:var(--panel);
+    border:2px solid var(--signal);display:flex;align-items:center;justify-content:center;
+    font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:.95rem;color:var(--signal);z-index:2;flex-direction:column;line-height:1;
+  }
+  .badge small{font-family:"IBM Plex Mono",monospace;font-size:.42rem;letter-spacing:.05em;color:var(--muted);margin-top:2px}
+  @media(max-width:640px){.badge{width:36px;height:36px;font-size:.8rem}.badge small{display:none}}
+  .day.final .badge{border-color:var(--live);color:var(--live);background:var(--live-soft)}
+  .day .card{background:var(--panel);border:1px solid var(--hair-strong);border-radius:var(--r);padding:22px 24px}
+  .day h3{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:clamp(1.25rem,3vw,1.6rem);letter-spacing:-.015em;margin:0 0 4px}
+  .day .arc{font-size:.95rem;color:var(--muted);margin:0 0 16px;font-style:italic}
+  .day ul{margin:0;padding:0;list-style:none}
+  .day li{position:relative;padding:5px 0 5px 22px;font-size:.93rem;color:var(--ink-soft)}
+  .day li::before{content:"";position:absolute;left:2px;top:13px;width:7px;height:7px;border-radius:50%;background:var(--signal);opacity:.55}
+  .day li b{color:var(--ink);font-weight:600}
+  .day code{font-family:"IBM Plex Mono",monospace;font-size:.85em;background:var(--signal-soft);color:var(--signal);padding:1px 5px;border-radius:4px}
+  .checkpoint{
+    display:flex;gap:11px;align-items:flex-start;margin-top:16px;padding:12px 15px;
+    background:var(--ok-soft);border-radius:10px;border:1px solid #BEE6D5;
+  }
+  .checkpoint .k{font-family:"IBM Plex Mono",monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ok);font-weight:600;padding-top:2px;flex:0 0 auto}
+  .checkpoint p{margin:0;font-size:.88rem;color:#155e40}
+  .checkpoint p b{color:#0c4a31}
+
+  /* correction note */
+  .fix{
+    margin-top:16px;padding:14px 16px;background:var(--live-soft);border:1px solid var(--live-line);
+    border-radius:10px;position:relative;
+  }
+  .fix .flag{
+    font-family:"IBM Plex Mono",monospace;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
+    color:#9a6b0f;font-weight:600;margin:0 0 6px;display:flex;align-items:center;gap:7px;
+  }
+  .fix .flag::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--live)}
+  .fix p{margin:0;font-size:.9rem;color:#7a5a12}
+  .fix p b{color:#5f4200}
+  .fix code{font-family:"IBM Plex Mono",monospace;font-size:.85em;background:#fff;color:#8a4b00;padding:1px 5px;border-radius:4px}
+  .fix p + p{margin-top:8px}
+
+  /* code */
+  .code{background:var(--code-bg);border-radius:12px;overflow:hidden;margin:14px 0 4px;border:1px solid #1d2740}
+  .code-top{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid #1d2740;background:#0b1120}
+  .code-top .fname{font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--code-dim)}
+  .copy{font-family:"IBM Plex Mono",monospace;font-size:.68rem;background:transparent;border:1px solid #2a3a5c;color:var(--code-dim);padding:3px 9px;border-radius:6px;cursor:pointer;transition:all .15s}
+  .copy:hover{border-color:var(--signal);color:#aeb9ff}
+  .copy.done{border-color:var(--ok);color:var(--code-str)}
+  pre{margin:0;padding:15px 16px;overflow-x:auto;font-family:"IBM Plex Mono",monospace;font-size:.8rem;line-height:1.7;color:var(--code-ink)}
+  pre .cm{color:var(--code-dim);font-style:italic}
+  pre .s{color:var(--code-str)}
+  pre .k{color:var(--code-key)}
+  pre .n{color:var(--code-num)}
+
+  /* defense cards */
+  .qa{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:26px 0}
+  @media(max-width:760px){.qa{grid-template-columns:1fr}}
+  .q{background:var(--panel);border:1px solid var(--hair-strong);border-radius:12px;padding:18px 20px}
+  .q .qt{font-weight:600;color:var(--ink);font-size:.94rem;margin:0 0 8px}
+  .q .at{font-size:.88rem;color:var(--muted);margin:0}
+  .q .at b{color:var(--signal);font-weight:500}
+
+  /* gotchas */
+  .gotchas{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:26px 0}
+  @media(max-width:720px){.gotchas{grid-template-columns:1fr}}
+  .g{background:var(--panel-2);border:1px solid var(--hair);border-radius:12px;padding:16px 18px;display:flex;gap:12px}
+  .g .x{color:#C0392B;font-weight:700;flex:0 0 auto;font-family:"IBM Plex Mono",monospace}
+  .g p{margin:0;font-size:.88rem;color:var(--ink-soft)}
+  .g p b{color:var(--ink)}
+  .g code{font-family:"IBM Plex Mono",monospace;font-size:.84em;background:#fff;color:var(--signal);padding:1px 5px;border-radius:4px;border:1px solid var(--hair)}
+
+  /* closing */
+  .closing{margin:60px 0;padding:36px 34px;border-radius:16px;background:var(--ink);color:#E8ECF3;position:relative;overflow:hidden}
+  .closing::after{content:"";position:absolute;right:-40px;top:-40px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(245,165,36,.3),transparent 70%)}
+  .closing .eyebrow{color:#F5C877}
+  .closing .eyebrow::before{background:#F5C877}
+  .closing h2{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:clamp(1.5rem,3.6vw,2.1rem);margin:0 0 14px;letter-spacing:-.015em;position:relative}
+  .closing p{color:#AEB7C7;max-width:64ch;margin:0 0 8px;position:relative}
+  .closing p b{color:#fff}
+
+  footer{padding:28px 0 60px;border-top:1px solid var(--hair-strong);margin-top:20px;font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease}
+  .reveal.in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HERO -->
+  <header>
+    <p class="eyebrow">Call Me Maybe · 7-day build plan</p>
+    <h1>Force the model to speak valid JSON<span class="dot">.</span></h1>
+    <p class="thesis">You're building a program that turns a natural-language prompt into a <b>guaranteed-valid</b> JSON function call — by intercepting the model's raw logits at each step and deleting every token that would break the required structure. A tiny 0.6B model becomes 100% reliable, <b>by construction, not by luck.</b></p>
+
+    <div class="path" role="img" aria-label="Generation pipeline">
+      <p class="path-label">// the loop you run per token</p>
+      <div class="path-row">
+        <div class="node"><div class="dotn"></div><span>Prompt</span></div>
+        <div class="link"></div>
+        <div class="node"><div class="dotn"></div><span>Input&nbsp;IDs</span></div>
+        <div class="link"></div>
+        <div class="node"><div class="dotn"></div><span>Logits</span></div>
+        <div class="link"></div>
+        <div class="node terminal"><div class="dotn"></div><span>Mask&nbsp;−∞</span></div>
+        <div class="link"></div>
+        <div class="node terminal"><div class="dotn"></div><span>Argmax</span></div>
+        <div class="link"></div>
+        <div class="node"><div class="dotn"></div><span>Append&nbsp;↺</span></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- THE TWO RULES -->
+  <div class="shead reveal">
+    <p class="eyebrow">What's actually graded</p>
+    <h2>Two hard rules the whole subject is built on</h2>
+  </div>
+  <div class="rules">
+    <div class="rule reveal">
+      <p class="tag">Rule 01 · structure</p>
+      <h3>Force validity mechanically</h3>
+      <p>No prompting-and-hoping. If a reviewer sees you write <code>"please output JSON"</code> and parse the result, the core fails. Validity comes from masking logits — never from the prompt.</p>
+    </div>
+    <div class="rule reveal">
+      <p class="tag">Rule 02 · choice</p>
+      <h3>The model picks the function</h3>
+      <p>No <code>if "sum" in prompt</code> heuristics. You decide what tokens are <b>allowed</b>; the model's probabilities decide which allowed token wins. That distinction is the skill.</p>
+    </div>
+  </div>
+
+  <!-- CONCEPTS -->
+  <div class="shead reveal">
+    <p class="eyebrow">Own these cold for the defense</p>
+    <h2>The concepts a corrector will drill</h2>
+    <p>Be able to say each one out loud. These are the mental model the whole build rests on.</p>
+  </div>
+  <div class="concepts">
+    <div class="c reveal"><p class="num">01</p><h4>Logits &amp; greedy decoding</h4><p>The model scores every vocab token as the next token. Greedy = take the highest — but <b>you edit the scores first</b>, then take argmax of what survives.</p></div>
+    <div class="c reveal"><p class="num">02</p><h4>Autoregressive loop</h4><p>Pick a token, append it, call the model again. Generation is one token at a time, always conditioned on everything so far. This loop is your whole program.</p></div>
+    <div class="c reveal"><p class="num">03</p><h4>Byte-level BPE</h4><p>Text becomes subword tokens. Qwen maps <b>every raw byte</b> to a printable stand-in — the space byte shows as <code>Ġ</code>. So <code>"Ġsum"</code> really means <code>" sum"</code>.</p></div>
+    <div class="c reveal"><p class="num">04</p><h4>The vocab file</h4><p><code>vocab.json</code> maps token-string → id. Invert it to answer the constant question: <b>"if the model picks token X, which characters does it add?"</b></p></div>
+    <div class="c reveal"><p class="num">05</p><h4>Constrained decoding = masking</h4><p>Get logits → ask the validator which tokens are legal now → set illegal ones to <code>-inf</code> → argmax → append → repeat. Invalid output becomes <b>unpickable</b>.</p></div>
+    <div class="c reveal"><p class="num">06</p><h4>The validator is a state machine</h4><p>You know the exact shape, so no general parser. A <b>trie</b> for names, a small FSM for numbers, an FSM for strings, a set for booleans.</p></div>
+    <div class="c reveal"><p class="num">07</p><h4>Two-stage design</h4><p>Stage 1: force <code>{"name":"</code>, constrain to the name trie. Stage 2: now you know the function, so force each fixed param name and constrain only the <b>value</b> by type.</p></div>
+    <div class="c reveal"><p class="num">08</p><h4>Only call the model at decisions</h4><p>Structural characters (<code>{</code>, <code>:</code>, <code>,</code>, fixed param names) — <b>you</b> append those with no forward pass. Spend a model call only when it must genuinely choose. ~30 calls → ~5–10.</p></div>
+  </div>
+
+  <!-- ARCHITECTURE -->
+  <div class="shead reveal">
+    <p class="eyebrow">Clean separation earns points</p>
+    <h2>Module responsibilities</h2>
+    <p>Keep the grammar logic in one place, keyed by type — that's what makes the live modification a two-minute change.</p>
+  </div>
+  <div class="arch reveal">
+    <div class="mod"><div class="name">src/__main__.py</div><div class="desc">Entry point for <code style="font-family:'IBM Plex Mono'">python -m src</code>. Parses the three flags, orchestrates, catches top-level errors.</div></div>
+    <div class="mod"><div class="name">src/models.py</div><div class="desc">Pydantic models: function definition, parameter, test prompt, output record.</div></div>
+    <div class="mod"><div class="name">src/io_layer.py</div><div class="desc">Load + validate the JSON inputs, write the output. All graceful-error logic lives here.</div></div>
+    <div class="mod"><div class="name">src/vocab.py</div><div class="desc">Load <code style="font-family:'IBM Plex Mono'">vocab.json</code>, build id↔string maps, implement byte-level decoding.</div></div>
+    <div class="mod"><div class="name">src/constraints.py</div><div class="desc">The validators — name trie, number FSM, string FSM, boolean set. "Which tokens are legal now" + "advance state."</div></div>
+    <div class="mod"><div class="name">src/decoder.py</div><div class="desc">The generation loop: append forced tokens silently; at decisions mask with −∞, argmax, advance.</div></div>
+    <div class="mod"><div class="name">src/pipeline.py</div><div class="desc">Per prompt: build context, run stage 1 (name), run stage 2 (params), assemble the record.</div></div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="shead reveal">
+    <p class="eyebrow">6 hours a day · explain by end of day</p>
+    <h2>The seven-day plan</h2>
+    <p>Every day ends with something you must be able to explain out loud — the defense tests understanding, not just a working binary.</p>
+  </div>
+
+  <div class="timeline">
+
+    <!-- DAY 1 -->
+    <div class="day reveal">
+      <div class="badge">1<small>DAY</small></div>
+      <div class="card">
+        <h3>Setup &amp; the mental model</h3>
+        <p class="arc">Prove the pipeline end-to-end before building anything.</p>
+        <ul>
+          <li><b>H1–2:</b> <code>uv init</code>, add numpy + pydantic, copy <code>llm_sdk/</code> next to <code>src/</code>, <code>uv sync</code>. Confirm the import works.</li>
+          <li><b>H3–4:</b> Re-read the subject and SDK source. One-page note: which methods exist, what each returns, what's forbidden.</li>
+          <li><b>H5–6:</b> Explore the tokenizer by hand — encode strings, decode single ids, find <code>Ġ</code> yourself, watch <code>fn_add_numbers</code> split into pieces.</li>
+        </ul>
+        <div class="code">
+          <div class="code-top"><span class="fname">smoke_test.py — the one that must pass first</span><button class="copy">copy</button></div>
+<pre><span class="k">import</span> numpy <span class="k">as</span> np
+<span class="k">from</span> llm_sdk <span class="k">import</span> Small_LLM_Model
+
+model = Small_LLM_Model()
+ids = model.encode(<span class="s">"The capital of France is"</span>)[<span class="n">0</span>].tolist()
+logits = model.get_logits_from_input_ids(ids)   <span class="cm"># ~151936 floats</span>
+<span class="k">print</span>(len(logits), repr(model.decode([<span class="k">int</span>(np.argmax(logits))])))</pre>
+        </div>
+        <div class="checkpoint"><span class="k">explain</span><p><b>What a logit is, what one <code style="font-family:'IBM Plex Mono';background:#fff;color:#0c4a31">get_logits</code> call does, and why tokens aren't characters.</b></p></div>
+      </div>
+    </div>
+
+    <!-- DAY 2 -->
+    <div class="day reveal">
+      <div class="badge">2<small>DAY</small></div>
+      <div class="card">
+        <h3>Data models, I/O &amp; error handling</h3>
+        <p class="arc">Make every failure a clean message, never a stack trace.</p>
+        <ul>
+          <li><b>H1–3:</b> Pydantic models for both input files and the output record. Load the real files through them.</li>
+          <li><b>H4–6:</b> I/O layer with full error handling — missing file, invalid JSON, empty array, wrong shape. Deliberately break each and confirm a clean message. Add the argparse entry point with the three flags and default paths.</li>
+        </ul>
+        <div class="checkpoint"><span class="k">explain</span><p><b>How pydantic validates your inputs, and every way the program can fail gracefully.</b></p></div>
+      </div>
+    </div>
+
+    <!-- DAY 3 -->
+    <div class="day reveal">
+      <div class="badge">3<small>DAY</small></div>
+      <div class="card">
+        <h3>The vocabulary map</h3>
+        <p class="arc">Answer "what does this token add?" for any id.</p>
+        <ul>
+          <li><b>H1–3:</b> Load <code>vocab.json</code>, build id→string and string→id. Implement byte-level decoding so any id becomes its real characters.</li>
+          <li><b>H4–6:</b> Precompute the sets you'll query constantly: pure-digit tokens, a single <code>-</code>, tokens containing <code>"</code>, etc. This is your performance foundation.</li>
+        </ul>
+        <div class="fix">
+          <p class="flag">correction to fold in</p>
+          <p><b>Don't special-case <code>Ġ</code>.</b> Byte-level BPE maps <b>all 256 raw bytes</b> to printable stand-ins — <code>Ġ</code> is just the one for the space byte. Build the full 256-entry byte→unicode table and run every token string through it.</p>
+          <p>If you only handle <code>Ġ</code>, newlines, punctuation and non-ASCII decode wrong <b>silently</b>. Verify on Day 1 by decoding single ids and comparing to the raw vocab string — see the mismatch with your own eyes.</p>
+        </div>
+        <div class="checkpoint"><span class="k">explain</span><p><b>Why you need the vocab file, and how you map a token id to the exact string it contributes.</b></p></div>
+      </div>
+    </div>
+
+    <!-- DAY 4 -->
+    <div class="day reveal">
+      <div class="badge">4<small>DAY</small></div>
+      <div class="card">
+        <h3>Decoding loop + name selection (Stage 1)</h3>
+        <p class="arc">Where "the model chooses" actually happens.</p>
+        <ul>
+          <li><b>H1–2:</b> The loop skeleton — a masked-argmax step at decision points, and a silent "append a forced token" step that skips the model.</li>
+          <li><b>H3–6:</b> Build the name trie; wire Stage 1: force <code>{"name": "</code>, constrain to the trie until one name is matched, force the closing quote. Confirm "sum of 2 and 3" → <code>fn_add_numbers</code>, "Greet shrek" → <code>fn_greet</code>.</li>
+        </ul>
+        <div class="code">
+          <div class="code-top"><span class="fname">the masking step, in essence</span><button class="copy">copy</button></div>
+<pre>logits = np.asarray(model.get_logits_from_input_ids(ids))
+mask = np.full_like(logits, -np.inf)
+mask[legal_token_ids] = <span class="n">0.0</span>          <span class="cm"># only tokens the validator allows</span>
+next_id = <span class="k">int</span>((logits + mask).argmax())  <span class="cm"># model chooses among the legal</span>
+ids.append(next_id)</pre>
+        </div>
+        <div class="checkpoint"><span class="k">explain</span><p><b>How trie + masking makes the model choose a valid function with no heuristic, and how you only call the model at decisions.</b></p></div>
+      </div>
+    </div>
+
+    <!-- DAY 5 -->
+    <div class="day reveal">
+      <div class="badge">5<small>DAY</small></div>
+      <div class="card">
+        <h3>Parameter filling (Stage 2)</h3>
+        <p class="arc">The hardest day — budget for it to spill.</p>
+        <ul>
+          <li><b>H1–3:</b> Number FSM (optional sign, digits, optional single dot, digits) — force <code>"&lt;param&gt;": </code> then constrain to number tokens. Test 2, 3, 16.</li>
+          <li><b>H4–6:</b> String FSM — force opening quote, allow content tokens, let the model pick the closing quote. Test reverse/greet and the 3-param regex prompt. Assemble the record, write the file.</li>
+        </ul>
+        <div class="fix">
+          <p class="flag">correction to fold in · strings</p>
+          <p><b>The closing quote must always stay legal.</b> Multi-char tokens like <code>hello"</code> or <code>ay",</code> smuggle structure into content — forbidding any token containing <code>"</code> can leave <b>no legal token</b> when a short string wants to end. Keep the closing-quote token in the legal set every step.</p>
+          <p>Test the two cases that break it: an empty string <code>""</code> and a one-character string.</p>
+        </div>
+        <div class="fix">
+          <p class="flag">correction to fold in · numbers</p>
+          <p><b>Decide how the number ends, and int vs float.</b> The output example uses <code>2.0</code> — floats. Pick a rule and justify it in the README.</p>
+          <p>At a number boundary, the legal set <b>must include the structural next token</b> (<code>,</code> or <code>}</code>) or the value never closes and you loop forever.</p>
+        </div>
+        <div class="checkpoint"><span class="k">explain</span><p><b>The JSON number grammar and string-escaping rules, and how you guarantee the value's type matches the schema.</b></p></div>
+      </div>
+    </div>
+
+    <!-- DAY 6 -->
+    <div class="day reveal">
+      <div class="badge">6<small>DAY</small></div>
+      <div class="card">
+        <h3>Robustness, edge cases &amp; lint</h3>
+        <p class="arc">Prove it's not hardcoded and it's fast enough.</p>
+        <ul>
+          <li><b>H1–2:</b> Full run over all prompts, timed, under 5 minutes. If slow, check you're not calling the model on forced tokens.</li>
+          <li><b>H3–4:</b> Edge cases — empty strings, large numbers, special characters, ambiguous prompt, multi-param function. Swap in a <b>different</b> functions file to prove nothing is hardcoded. Validate every output with pydantic before writing.</li>
+          <li><b>H5–6:</b> Makefile (install/run/debug/clean/lint/lint-strict). Run <code>flake8</code> and <code>mypy</code> with the exact flags; add type hints + docstrings until both pass clean.</li>
+        </ul>
+        <div class="checkpoint"><span class="k">explain</span><p><b>Why your output is 100% valid by construction, plus your accuracy and speed numbers.</b></p></div>
+      </div>
+    </div>
+
+    <!-- DAY 7 -->
+    <div class="day final reveal">
+      <div class="badge">7<small>DAY</small></div>
+      <div class="card">
+        <h3>README, tests, bonus &amp; rehearsal</h3>
+        <p class="arc">If you're behind, cut bonuses — never FSM robustness.</p>
+        <ul>
+          <li><b>H1–2:</b> README with every required section: italic first line + 42 login(s), Description, Instructions, Resources (state exactly how AI was used, for which parts), plus Algorithm / Design / Performance / Challenges / Testing / Example usage. English only.</li>
+          <li><b>H3–4:</b> Small pytest suite — validate JSON output, test the FSMs and trie on known inputs. Not graded, but catches regressions.</li>
+          <li><b>H4–5:</b> One finishable bonus to demo: recoding the tokenizer (no <code>encode</code>/<code>decode</code> in main code) or caching the allowed-token sets. Must actually work.</li>
+          <li><b>H5–6:</b> Clean repo (no <code>data/output/</code>, <code>.gitignore</code> in place), cold <code>uv sync</code> + full run, then rehearse the defense out loud.</li>
+        </ul>
+        <div class="checkpoint"><span class="k">explain</span><p><b>Your whole pipeline in five sentences — and be ready for a small on-the-spot modification.</b></p></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- DEFENSE -->
+  <div class="shead reveal">
+    <p class="eyebrow">Rehearse crisp answers</p>
+    <h2>Defense questions &amp; the live modification</h2>
+  </div>
+  <div class="qa">
+    <div class="q reveal"><p class="qt">Where does constrained decoding happen, and what does −∞ do?</p><p class="at"><b>At each step:</b> mask illegal tokens to −∞ so argmax can't pick them.</p></div>
+    <div class="q reveal"><p class="qt">How does the model choose the function, not your code?</p><p class="at"><b>Trie of names</b> + argmax over the allowed name tokens.</p></div>
+    <div class="q reveal"><p class="qt">Why is your JSON guaranteed valid?</p><p class="at"><b>Invalid tokens are unpickable</b> — validity is structural, not probabilistic.</p></div>
+    <div class="q reveal"><p class="qt">Why not just prompt for JSON?</p><p class="at"><b>Unreliable at 0.6B.</b> Prompting buys accuracy; the constraint buys validity.</p></div>
+    <div class="q reveal"><p class="qt">What if the model tried a letter inside a number?</p><p class="at"><b>The number FSM masks it</b> — that token was never legal.</p></div>
+    <div class="q reveal"><p class="qt">How do you handle a missing / corrupt input file?</p><p class="at"><b>Demonstrate it</b> — clean message from the I/O layer, no crash.</p></div>
+  </div>
+  <div class="fix reveal" style="margin-top:8px">
+    <p class="flag">the live modification is almost guaranteed</p>
+    <p>Common asks: add a <b>boolean</b> or <b>integer</b> parameter type and constrain it, rename output keys or add a field, or force a parameter to a fixed value set. If your constraints live in one module keyed by type, each is a few-minute change. <b>Practise adding a boolean constraint on Day 7</b> so nothing surprises you.</p>
+  </div>
+
+  <!-- GOTCHAS -->
+  <div class="shead reveal">
+    <p class="eyebrow">These cost people points</p>
+    <h2>Traps to avoid</h2>
+  </div>
+  <div class="gotchas">
+    <div class="g reveal"><span class="x">✕</span><p><b>Calling the model on forced tokens.</b> Wastes the 5-minute budget. Only call <code>get_logits</code> at true decisions.</p></div>
+    <div class="g reveal"><span class="x">✕</span><p><b>Forgetting byte-level decoding.</b> Comparing raw vocab strings makes matching silently wrong around spaces.</p></div>
+    <div class="g reveal"><span class="x">✕</span><p><b>Tokens crossing a boundary.</b> A token can hold content + closing quote. Forbid quote/backslash in content; end the quote as its own step.</p></div>
+    <div class="g reveal"><span class="x">✕</span><p><b>Hardcoding to the sample data.</b> The reviewer swaps files. Everything derives from the loaded definitions.</p></div>
+    <div class="g reveal"><span class="x">✕</span><p><b>Committing <code>data/output/</code>.</b> Explicitly forbidden — <code>.gitignore</code> it.</p></div>
+    <div class="g reveal"><span class="x">✕</span><p><b>Using a private SDK attribute.</b> Instant problem. Public methods only.</p></div>
+  </div>
+
+  <!-- CLOSING -->
+  <div class="closing reveal">
+    <p class="eyebrow">The one line that ties it together</p>
+    <h2>Structure from the constraint, intelligence from the model</h2>
+    <p>The prompt gives the model context so its <b>legal</b> choices are the <b>right</b> ones — that's your 90% accuracy. The mask makes every invalid token unpickable — that's your 100% validity. <b>Both matter, and they're different jobs.</b> Say that clearly in the defense and most other questions answer themselves.</p>
+  </div>
+
+  <footer>
+    <span>Call Me Maybe · v1.5 · 7-day plan · 6h/day</span>
+    <span>model: Qwen/Qwen3-0.6B · numpy · pydantic · json</span>
+  </footer>
+
+</div>
+
+<script>
+  document.querySelectorAll('.copy').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var pre = btn.closest('.code').querySelector('pre');
+      navigator.clipboard.writeText(pre.innerText).then(function(){
+        btn.textContent='copied'; btn.classList.add('done');
+        setTimeout(function(){ btn.textContent='copy'; btn.classList.remove('done'); },1400);
+      }).catch(function(){ btn.textContent='select'; });
+    });
+  });
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reduce && 'IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:0.1});
+    document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+  } else { document.querySelectorAll('.reveal').forEach(function(el){el.classList.add('in');}); }
+</script>
+</body>
+</html>
