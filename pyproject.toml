@@ -7,10 +7,17 @@ dependencies = [
     "numpy",
     "pydantic>=2",
     "llm-sdk",
+    "moulinette",
 ]
 
 [tool.uv.sources]
 llm-sdk = { path = "llm_sdk", editable = true }
+moulinette = { workspace = true }
+
+[tool.uv.workspace]
+members = [
+    "moulinette",
+]
 
 [tool.mypy]
 warn_return_any = true
