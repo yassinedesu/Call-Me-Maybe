@@ -20,13 +20,13 @@ def load_registry(path: str) -> dict[str, FunctionSpec]:
     """
     try:
         with open(path, "r") as config_file:
-            function_definitions = json.load(config_file)
+            function_definitions = json.load(config_file) #returning a list of dictionaries cuz we have the JSON file starts & ends with [] 
     except FileNotFoundError:
         raise FileNotFoundError(f"Functions definition file not found: {path}")
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON in {path}: {e}")
 
-    if not isinstance(function_definitions, list):
+    if not isinstance(function_definitions, list): #to check whether we had the return of a list or not
         raise ValueError(
             f"Invalid JSON in {path}: Expected a list of functions"
         )

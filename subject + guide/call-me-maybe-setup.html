@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Call Me Maybe — Setup: from zero to a running model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#ECEEF2;
+    --panel:#FFFFFF;
+    --panel-2:#F5F7FA;
+    --ink:#121926;
+    --ink-soft:#3A4453;
+    --muted:#697487;
+    --hair:#D5DAE2;
+    --hair-strong:#BFC6D2;
+    --signal:#3B3FE4;
+    --signal-soft:#E5E6FC;
+    --live:#F5A524;
+    --live-soft:#FDEFD3;
+    --ok:#1F9D6B;
+    --code-bg:#0E1526;
+    --code-ink:#D8DEEA;
+    --code-dim:#7C8AA5;
+    --code-str:#8FD3A6;
+    --code-key:#8FB4FF;
+    --code-num:#F5B368;
+    --r:14px;
+    --maxw:1080px;
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Inter",system-ui,sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      linear-gradient(var(--hair) 1px,transparent 1px),
+      linear-gradient(90deg,var(--hair) 1px,transparent 1px);
+    background-size:34px 34px;
+    background-position:-1px -1px;
+  }
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+  /* ---------- header / hero ---------- */
+  header{padding:64px 0 30px}
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:.72rem;letter-spacing:.28em;text-transform:uppercase;
+    color:var(--signal);font-weight:500;margin:0 0 20px;
+    display:flex;align-items:center;gap:12px;
+  }
+  .eyebrow::before{content:"";width:26px;height:1px;background:var(--signal)}
+  h1{
+    font-family:"Space Grotesk",sans-serif;
+    font-weight:700;line-height:1.02;
+    font-size:clamp(2.5rem,7vw,4.6rem);
+    letter-spacing:-.02em;margin:0 0 22px;max-width:16ch;
+  }
+  h1 .maybe{color:var(--signal)}
+  .lede{
+    font-size:clamp(1.05rem,2.4vw,1.28rem);
+    color:var(--ink-soft);max-width:60ch;margin:0;
+  }
+  .lede b{color:var(--ink);font-weight:600}
+
+  /* ---------- signal path ribbon ---------- */
+  .path{
+    margin:44px 0 8px;padding:22px 20px;
+    background:var(--panel);border:1px solid var(--hair-strong);
+    border-radius:var(--r);
+    overflow-x:auto;
+  }
+  .path-label{
+    font-family:"IBM Plex Mono",monospace;font-size:.66rem;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--muted);
+    margin:0 0 16px;
+  }
+  .path-row{display:flex;align-items:center;gap:0;min-width:max-content}
+  .node{
+    display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center;
+  }
+  .dot{
+    width:13px;height:13px;border-radius:50%;
+    background:var(--panel);border:2px solid var(--signal);
+    position:relative;
+  }
+  .node.terminal .dot{background:var(--signal)}
+  .node span{
+    font-family:"IBM Plex Mono",monospace;font-size:.74rem;
+    color:var(--ink-soft);white-space:nowrap;
+  }
+  .link{
+    height:2px;width:clamp(26px,5vw,64px);
+    background:linear-gradient(90deg,var(--signal),var(--signal));
+    opacity:.4;margin:0 4px 26px;flex:0 0 auto;
+  }
+
+  /* ---------- scope callout ---------- */
+  .scope{
+    display:grid;grid-template-columns:1fr 1fr;gap:0;
+    margin:40px 0 8px;border:1px solid var(--hair-strong);
+    border-radius:var(--r);overflow:hidden;background:var(--panel);
+  }
+  .scope > div{padding:24px 26px}
+  .scope .covers{border-right:1px solid var(--hair)}
+  .scope h3{
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;
+    letter-spacing:.16em;text-transform:uppercase;margin:0 0 14px;
+    display:flex;align-items:center;gap:9px;
+  }
+  .scope .covers h3{color:var(--ok)}
+  .scope .stops h3{color:var(--muted)}
+  .tick,.stop{font-weight:700}
+  .tick{color:var(--ok)}
+  .stop{color:var(--muted)}
+  .scope ul{margin:0;padding:0;list-style:none}
+  .scope li{
+    font-size:.95rem;color:var(--ink-soft);padding:6px 0 6px 22px;position:relative;
+  }
+  .scope li::before{
+    content:"";position:absolute;left:0;top:13px;width:8px;height:8px;border-radius:2px;
+  }
+  .scope .covers li::before{background:var(--ok)}
+  .scope .stops li::before{background:var(--hair-strong)}
+
+  /* ---------- steps / spine ---------- */
+  .steps{position:relative;margin:60px 0 20px;padding-left:0}
+  .steps::before{
+    content:"";position:absolute;left:23px;top:14px;bottom:60px;width:2px;
+    background:linear-gradient(180deg,var(--signal) 0%,var(--signal) 78%,var(--live) 78%,var(--live) 100%);
+    opacity:.85;
+  }
+  @media(max-width:640px){.steps::before{left:17px}}
+
+  .step{position:relative;padding:0 0 46px 66px}
+  @media(max-width:640px){.step{padding-left:52px}}
+  .badge{
+    position:absolute;left:0;top:0;width:48px;height:48px;border-radius:50%;
+    background:var(--panel);border:2px solid var(--signal);
+    display:flex;align-items:center;justify-content:center;
+    font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.15rem;
+    color:var(--signal);z-index:2;
+  }
+  @media(max-width:640px){.badge{width:36px;height:36px;font-size:.95rem}}
+  .step.live .badge{border-color:var(--live);color:var(--live);background:var(--live-soft)}
+
+  .step h2{
+    font-family:"Space Grotesk",sans-serif;font-weight:700;
+    font-size:clamp(1.4rem,3.2vw,1.9rem);letter-spacing:-.015em;
+    margin:4px 0 6px;line-height:1.15;
+  }
+  .kicker{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--muted);
+    margin:0 0 12px;
+  }
+  .step p{color:var(--ink-soft);margin:0 0 14px;max-width:66ch}
+  .step p b{color:var(--ink);font-weight:600}
+  .step p code, .inline{
+    font-family:"IBM Plex Mono",monospace;font-size:.86em;
+    background:var(--signal-soft);color:var(--signal);
+    padding:1px 6px;border-radius:5px;font-weight:500;
+  }
+
+  /* ---------- code blocks ---------- */
+  .code{
+    background:var(--code-bg);border-radius:12px;overflow:hidden;
+    margin:16px 0 18px;border:1px solid #1d2740;
+  }
+  .code-top{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:9px 14px;border-bottom:1px solid #1d2740;background:#0b1120;
+  }
+  .code-top .fname{
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;
+    color:var(--code-dim);letter-spacing:.04em;
+  }
+  .code-top .lang{
+    font-family:"IBM Plex Mono",monospace;font-size:.62rem;
+    letter-spacing:.16em;text-transform:uppercase;color:#4d5f80;
+  }
+  .copy{
+    font-family:"IBM Plex Mono",monospace;font-size:.68rem;
+    background:transparent;border:1px solid #2a3a5c;color:var(--code-dim);
+    padding:3px 9px;border-radius:6px;cursor:pointer;transition:all .15s;letter-spacing:.05em;
+  }
+  .copy:hover{border-color:var(--signal);color:#aeb9ff}
+  .copy.done{border-color:var(--ok);color:var(--code-str)}
+  pre{
+    margin:0;padding:16px 16px;overflow-x:auto;
+    font-family:"IBM Plex Mono",monospace;font-size:.82rem;line-height:1.7;
+    color:var(--code-ink);
+  }
+  pre .c{color:var(--code-dim);font-style:italic}
+  pre .s{color:var(--code-str)}
+  pre .k{color:var(--code-key)}
+  pre .n{color:var(--code-num)}
+  pre .p{color:#c58fff}
+
+  .note{
+    border-left:3px solid var(--signal);background:var(--panel-2);
+    padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0;
+    font-size:.9rem;color:var(--ink-soft);
+  }
+  .note.live{border-color:var(--live)}
+  .note b{color:var(--ink)}
+
+  .expect{
+    display:flex;gap:12px;align-items:flex-start;
+    background:var(--live-soft);border:1px solid #F1D79A;border-radius:10px;
+    padding:14px 16px;margin:16px 0;
+  }
+  .expect .lit{
+    width:10px;height:10px;border-radius:50%;background:var(--live);
+    margin-top:7px;flex:0 0 auto;box-shadow:0 0 0 4px rgba(245,165,36,.22);
+  }
+  .expect div{font-size:.9rem;color:#7a5a12}
+  .expect b{color:#5f4200}
+  .expect code{
+    font-family:"IBM Plex Mono",monospace;background:#fff;color:#8a4b00;
+    padding:1px 6px;border-radius:5px;font-size:.85em;
+  }
+
+  /* ---------- gotchas ---------- */
+  .section-head{margin:70px 0 10px}
+  .section-head .eyebrow{margin-bottom:14px}
+  .section-head h2{
+    font-family:"Space Grotesk",sans-serif;font-weight:700;
+    font-size:clamp(1.6rem,4vw,2.4rem);letter-spacing:-.02em;margin:0;
+  }
+  .gotchas{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin:26px 0;
+  }
+  @media(max-width:720px){.gotchas{grid-template-columns:1fr}}
+  .g{
+    background:var(--panel);border:1px solid var(--hair-strong);
+    border-radius:12px;padding:20px 22px;
+  }
+  .g .num{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--signal);
+    letter-spacing:.12em;margin:0 0 8px;
+  }
+  .g h4{font-family:"Space Grotesk",sans-serif;font-size:1.05rem;margin:0 0 8px;font-weight:500}
+  .g p{margin:0;font-size:.9rem;color:var(--ink-soft)}
+  .g code{
+    font-family:"IBM Plex Mono",monospace;font-size:.84em;
+    background:var(--signal-soft);color:var(--signal);padding:1px 5px;border-radius:4px;
+  }
+
+  /* ---------- closing ---------- */
+  .closing{
+    margin:60px 0;padding:36px 34px;border-radius:16px;
+    background:var(--ink);color:#E8ECF3;position:relative;overflow:hidden;
+  }
+  .closing::after{
+    content:"";position:absolute;right:-40px;top:-40px;width:220px;height:220px;
+    border-radius:50%;background:radial-gradient(circle,rgba(59,63,228,.35),transparent 70%);
+  }
+  .closing .eyebrow{color:#8FB4FF}
+  .closing .eyebrow::before{background:#8FB4FF}
+  .closing h2{
+    font-family:"Space Grotesk",sans-serif;font-weight:700;
+    font-size:clamp(1.5rem,3.6vw,2.1rem);margin:0 0 14px;letter-spacing:-.015em;
+    position:relative;
+  }
+  .closing p{color:#AEB7C7;max-width:62ch;margin:0 0 8px;position:relative}
+  .closing p b{color:#fff}
+  .closing .next{
+    font-family:"IBM Plex Mono",monospace;font-size:.82rem;color:#8FB4FF;
+    margin-top:18px;padding-top:16px;border-top:1px solid #26314a;position:relative;
+  }
+
+  footer{
+    padding:30px 0 60px;border-top:1px solid var(--hair-strong);margin-top:20px;
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--muted);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
+  }
+
+  /* reveal */
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease}
+  .reveal.in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){
+    .reveal{opacity:1;transform:none;transition:none}
+    html{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Call Me Maybe · Environment setup</p>
+    <h1>Get the model on the wire<span class="maybe">.</span></h1>
+    <p class="lede">Everything from an empty folder to a <b>green smoke test</b> — the moment <code class="inline">get_logits_from_input_ids</code> first returns a vector. This is the plumbing the whole project sits on. It stops right where the graded work begins.</p>
+
+    <div class="path" role="img" aria-label="The generation pipeline: prompt to token selection">
+      <p class="path-label">// the signal you're wiring up</p>
+      <div class="path-row">
+        <div class="node"><div class="dot"></div><span>Prompt</span></div>
+        <div class="link"></div>
+        <div class="node"><div class="dot"></div><span>Tokens</span></div>
+        <div class="link"></div>
+        <div class="node"><div class="dot"></div><span>Input&nbsp;IDs</span></div>
+        <div class="link"></div>
+        <div class="node"><div class="dot"></div><span>LLM</span></div>
+        <div class="link"></div>
+        <div class="node terminal"><div class="dot"></div><span>Logits</span></div>
+        <div class="link"></div>
+        <div class="node terminal"><div class="dot"></div><span>Next&nbsp;token</span></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="scope reveal">
+    <div class="covers">
+      <h3><span class="tick">✓</span> What this guide covers</h3>
+      <ul>
+        <li>Building the repo layout the reviewer expects</li>
+        <li>A <code style="font-family:'IBM Plex Mono',monospace">uv</code> environment that <code style="font-family:'IBM Plex Mono',monospace">uv sync</code> can rebuild</li>
+        <li>Installing the local SDK so it pulls torch &amp; transformers</li>
+        <li>Downloading Qwen3-0.6B on first run</li>
+        <li>Proving the model returns logits (smoke test)</li>
+        <li>Making <code style="font-family:'IBM Plex Mono',monospace">python -m src</code> runnable</li>
+      </ul>
+    </div>
+    <div class="stops">
+      <h3><span class="stop">→</span> Where it stops</h3>
+      <ul>
+        <li>The constrained decoder — the graded skill</li>
+        <li>Masking logits to schema-valid tokens</li>
+        <li>The JSON grammar state machine</li>
+        <li>Pydantic output validation</li>
+      </ul>
+      <p style="font-size:.85rem;color:var(--muted);margin:14px 0 0;padding-left:2px">Those are a separate build on top of Step 3. Getting to green first means you never debug the model and the decoder at the same time.</p>
+    </div>
+  </div>
+
+  <!-- STEPS -->
+  <div class="steps">
+
+    <!-- STEP 0 -->
+    <div class="step reveal">
+      <div class="badge">0</div>
+      <p class="kicker">// the shape the reviewer looks for</p>
+      <h2>Lay out the repository</h2>
+      <p>The subject dictates this structure exactly. The two things people forget: <code>src/</code> needs an <code>__init__.py</code> so <code>python -m src</code> resolves, and the SDK you copy in is the <b>outer</b> folder (the one that carries its own <code>pyproject.toml</code>).</p>
+      <div class="code">
+        <div class="code-top"><span class="fname">project tree</span><span class="lang">text</span><button class="copy">copy</button></div>
+<pre>call-me-maybe/
+├── pyproject.toml          <span class="c"># your project (numpy, pydantic, llm_sdk)</span>
+├── uv.lock                 <span class="c"># generated by uv sync</span>
+├── README.md
+├── Makefile
+├── src/
+│   ├── __init__.py
+│   └── __main__.py         <span class="c"># entry point for `python -m src`</span>
+├── llm_sdk/                <span class="c"># copied whole from the provided package</span>
+│   ├── llm_sdk/__init__.py <span class="c"># └─ the Small_LLM_Model class</span>
+│   ├── pyproject.toml
+│   └── uv.lock
+└── data/
+    └── input/
+        ├── functions_definition.json
+        └── function_calling_tests.json</pre>
+      </div>
+      <div class="code">
+        <div class="code-top"><span class="fname">put the pieces in place</span><span class="lang">bash</span><button class="copy">copy</button></div>
+<pre>mkdir -p call-me-maybe/src call-me-maybe/data
+cd call-me-maybe
+cp -r /path/to/unzipped/llm_sdk ./llm_sdk       <span class="c"># the OUTER folder</span>
+cp -r /path/to/unzipped/data/input ./data/input
+touch src/__init__.py</pre>
+      </div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="step reveal">
+      <div class="badge">1</div>
+      <p class="kicker">// uv is the source of truth</p>
+      <h2>Build the environment with uv</h2>
+      <p>The reviewer runs a single command: <code>uv sync</code>. So your root <code>pyproject.toml</code> has to declare everything, including the local SDK. The key line is <code>[tool.uv.sources]</code> — it points <code>llm-sdk</code> at your local folder instead of PyPI, and installing it drags in torch, transformers, and huggingface-hub from the SDK's own manifest.</p>
+      <div class="code">
+        <div class="code-top"><span class="fname">pyproject.toml</span><span class="lang">toml</span><button class="copy">copy</button></div>
+<pre><span class="p">[project]</span>
+<span class="k">name</span> = <span class="s">"call-me-maybe"</span>
+<span class="k">version</span> = <span class="s">"0.1.0"</span>
+<span class="k">requires-python</span> = <span class="s">">=3.10"</span>
+<span class="k">dependencies</span> = [
+    <span class="s">"numpy"</span>,
+    <span class="s">"pydantic"</span>,
+    <span class="s">"llm-sdk"</span>,
+]
+
+<span class="p">[tool.uv.sources]</span>
+<span class="k">llm-sdk</span> = { <span class="k">path</span> = <span class="s">"llm_sdk"</span>, <span class="k">editable</span> = <span class="n">true</span> }</pre>
+      </div>
+      <p>Then let uv resolve and install into a fresh <code>.venv/</code>:</p>
+      <div class="code">
+        <div class="code-top"><span class="fname">terminal</span><span class="lang">bash</span><button class="copy">copy</button></div>
+<pre>uv sync</pre>
+      </div>
+      <div class="note"><b>First run is slow.</b> uv pulls torch (hundreds of MB). That's a one-time cost — the lockfile makes every later <code style="color:var(--signal)">uv sync</code> fast and reproducible, which is exactly what the moulinette relies on.</div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step reveal">
+      <div class="badge">2</div>
+      <p class="kicker">// the weights aren't in the SDK</p>
+      <h2>Download the model on first construction</h2>
+      <p>The SDK ships code, not weights. The first time you build <code>Small_LLM_Model()</code>, it fetches <b>Qwen/Qwen3-0.6B</b> (~1.2&nbsp;GB) from the HuggingFace Hub and caches it under <code>~/.cache/huggingface/</code>. Every run after that is offline and instant to load.</p>
+      <div class="note">There's no separate download command — construction <i>is</i> the download. So the only requirement for Step 2 is: have a network connection the first time you run Step 3.</div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step reveal live">
+      <div class="badge">3</div>
+      <p class="kicker">// the payoff — the signal lights up</p>
+      <h2>Smoke-test the engine</h2>
+      <p>Before writing a single line of decoding logic, prove the model breathes. This is the whole point of the setup: one forward pass, in, out. Drop this at the repo root.</p>
+      <div class="code">
+        <div class="code-top"><span class="fname">smoke_test.py</span><span class="lang">python</span><button class="copy">copy</button></div>
+<pre><span class="k">import</span> numpy <span class="k">as</span> np
+<span class="k">from</span> llm_sdk <span class="k">import</span> Small_LLM_Model
+
+model = Small_LLM_Model()                     <span class="c"># downloads once, then cached</span>
+
+ids = model.encode(<span class="s">"The capital of France is"</span>)[<span class="n">0</span>].tolist()  <span class="c"># [0] unwraps batch dim</span>
+logits = model.get_logits_from_input_ids(ids)         <span class="c"># ~151936 floats</span>
+
+<span class="k">print</span>(<span class="s">"vocab size:"</span>, len(logits))
+<span class="k">print</span>(<span class="s">"next token:"</span>, repr(model.decode([<span class="k">int</span>(np.argmax(logits))])))</pre>
+      </div>
+      <div class="code">
+        <div class="code-top"><span class="fname">run it through uv</span><span class="lang">bash</span><button class="copy">copy</button></div>
+<pre>uv run python smoke_test.py</pre>
+      </div>
+      <div class="expect">
+        <div class="lit"></div>
+        <div><b>Expected — this is green:</b> a vocab size near <code>151936</code> and a next token like <code>' Paris'</code>. If you see that, the model runs and everything downstream is just logic layered on <code>get_logits_from_input_ids</code>.</div>
+      </div>
+      <p style="max-width:66ch"><b>Why <code>[0].tolist()</code> matters:</b> <code>encode</code> returns a 2-D tensor (batch × tokens), but <code>get_logits_from_input_ids</code> wants a flat <code>list[int]</code>. The <code>[0]</code> unwraps the batch dimension; <code>.tolist()</code> drops the tensor. Miss it and you'll hand the SDK the wrong shape.</p>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step reveal">
+      <div class="badge">4</div>
+      <p class="kicker">// the exact command the grader types</p>
+      <h2>Make <code style="font-size:.8em">python -m src</code> runnable</h2>
+      <p>The grader invokes <code>uv run python -m src --functions_definition … --input … --output …</code>. So <code>src/__main__.py</code> must exist and parse those three flags with the documented defaults. A stub that proves the contract:</p>
+      <div class="code">
+        <div class="code-top"><span class="fname">src/__main__.py</span><span class="lang">python</span><button class="copy">copy</button></div>
+<pre><span class="k">import</span> argparse
+
+
+<span class="k">def</span> <span class="k">main</span>() -> <span class="k">None</span>:
+    p = argparse.ArgumentParser()
+    p.add_argument(<span class="s">"--functions_definition"</span>,
+                   default=<span class="s">"data/input/functions_definition.json"</span>)
+    p.add_argument(<span class="s">"--input"</span>,
+                   default=<span class="s">"data/input/function_calling_tests.json"</span>)
+    p.add_argument(<span class="s">"--output"</span>,
+                   default=<span class="s">"data/output/function_calling_results.json"</span>)
+    args = p.parse_args()
+    <span class="k">print</span>(<span class="s">"args OK:"</span>, args)
+
+
+<span class="k">if</span> __name__ == <span class="s">"__main__"</span>:
+    main()</pre>
+      </div>
+      <div class="code">
+        <div class="code-top"><span class="fname">terminal</span><span class="lang">bash</span><button class="copy">copy</button></div>
+<pre>uv run python -m src</pre>
+      </div>
+      <p>If that prints your parsed args, the invocation contract is satisfied. From here, <code>main()</code> is where the real project plugs in: load the two JSON files, loop the prompts, run constrained decoding, write the output array.</p>
+    </div>
+
+  </div>
+
+  <!-- GOTCHAS -->
+  <div class="section-head reveal">
+    <p class="eyebrow">Before you move on</p>
+    <h2>Five things that bite people</h2>
+  </div>
+
+  <div class="gotchas">
+    <div class="g reveal">
+      <p class="num">G · 01</p>
+      <h4>encode returns 2-D</h4>
+      <p>A batch × tokens tensor. Always bridge to the SDK with <code>[0].tolist()</code> or you'll pass the wrong shape into <code>get_logits_from_input_ids</code>.</p>
+    </div>
+    <div class="g reveal">
+      <p class="num">G · 02</p>
+      <h4>No KV-cache is exposed</h4>
+      <p>Each generation step re-runs a full forward pass over the whole sequence — it's O(n²) in tokens. Fine for short function-call JSON; just don't expect it to be instant.</p>
+    </div>
+    <div class="g reveal">
+      <p class="num">G · 03</p>
+      <h4>CPU is the fallback</h4>
+      <p>No GPU or Apple MPS → it auto-selects <code>cpu</code> + float32. Slower but correct. The 5-minute budget for all prompts stays comfortable at these output lengths.</p>
+    </div>
+    <div class="g reveal">
+      <p class="num">G · 04</p>
+      <h4>Package shadowing</h4>
+      <p>If some other <code>llm_sdk</code> is installed globally, make sure imports resolve to the <i>provided</i> one. Running everything through <code>uv run</code> keeps the <code>.venv</code> active and correct.</p>
+    </div>
+    <div class="g reveal">
+      <p class="num">G · 05</p>
+      <h4>Model choice is downstream</h4>
+      <p>Getting logits flowing is "running the model." Which function to call and the masking that enforces it live entirely on top of Step 3 — a separate concern from setup.</p>
+    </div>
+  </div>
+
+  <!-- CLOSING -->
+  <div class="closing reveal">
+    <p class="eyebrow">Setup ends here</p>
+    <h2>A green smoke test is the starting line, not the finish</h2>
+    <p>Everything above is plumbing: it guarantees the model returns logits and the grader's command runs. <b>None of it is the graded skill.</b> That skill is the constrained decoder — the state machine that, at every token, sets illegal logits to −∞ so the model can only ever emit schema-valid JSON. The function gets chosen by the model's surviving probabilities, never by an <code style="font-family:'IBM Plex Mono',monospace;background:#1c2540;color:#8FB4FF;padding:1px 5px;border-radius:4px">if "sum" in prompt</code> heuristic.</p>
+    <p class="next">// next build → wire Step 3 into the token-by-token masking loop</p>
+  </div>
+
+  <footer>
+    <span>Call Me Maybe · v1.5 · function calling in LLMs</span>
+    <span>model: Qwen/Qwen3-0.6B · runtime: llm_sdk</span>
+  </footer>
+
+</div>
+
+<script>
+  // copy buttons
+  document.querySelectorAll('.copy').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var pre = btn.closest('.code').querySelector('pre');
+      var text = pre.innerText;
+      navigator.clipboard.writeText(text).then(function(){
+        btn.textContent = 'copied';
+        btn.classList.add('done');
+        setTimeout(function(){ btn.textContent = 'copy'; btn.classList.remove('done'); }, 1400);
+      }).catch(function(){
+        btn.textContent = 'select all';
+      });
+    });
+  });
+
+  // scroll reveal
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduce && 'IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+  } else {
+    document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); });
+  }
+</script>
+
+</body>
+</html>

@@ -7,5 +7,5 @@ class FunctionSpec(BaseModel):
 
     name: str
     description: str = ""
-    parameters: dict[str, dict[str, Any]] = Field(default_factory=dict)
+    parameters: dict[str, dict[str, Any]] = Field(default_factory=dict) # difference between default & default_factory?
     returns: dict[str, Any] = Field(default_factory=dict)
